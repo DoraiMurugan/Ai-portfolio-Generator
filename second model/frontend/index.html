@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portfolio Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Parallax background -->
+  <ul class='parallax'>
+    <li class='layer'></li>
+    <li class='layer'></li>
+    <li class='layer'></li>
+    <li class='layer'></li>
+    <li class='layer'></li>
+    <li class='layer'></li>
+  </ul>
+
+  <div class="wrap">
+    <header>
+      <h1>Portfolio Generator • Chat</h1>
+      <p>Ask for “skills”, “projects”, “generate portfolio html”, or things like “projects by React”.</p>
+    </header>
+    <div class="chat">
+      <div id="msgs" class="msgs"></div>
+      <div id="suggestions" class="suggestions"></div>
+      <div class="inputRow">
+        <input id="input" type="text" placeholder="Message Here!…" autofocus />
+        <button id="send" class="btn">
+          <svg height="24" width="24" viewBox="0 0 24 24" class="sparkle" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"></path>
+          </svg>
+          <span class="text">Send</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <article class='content'>
+    <section class='info'>
+      <h1>About us</h1>
+      <p>
+        Portfolio Generator is an AI-powered tool designed to help users create professional portfolios quickly and easily, without any coding. Started as a hackathon project by a group of five college friends...
+      </p>
+      <center><br><b>"Great portfolios don’t just show work — they tell a story."</b></center>
+    </section>
+    <footer>
+      <a href="#"><ion-icon name="logo-linkedin"></ion-icon></a>
+    </footer>
+  </article>
+
+  <script defer type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script defer nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
