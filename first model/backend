@@ -1,0 +1,170 @@
+const SPREADSHEET_ID = "1i-_UHY-Bq8Xy5zf8tvhQB53Mw4v9hPCG5SEsL2prAXo";
+
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle("Portfolio Chat")
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function getSheetData(sheetName) {
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(sheetName);
+    if (!sheet) return [];
+    return sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  } catch (e) {
+    return [];
+  }
+}
+
+function getBotResponse(message) {
+  const cleanMessage = message.toLowerCase().trim();
+  if (cleanMessage.includes("skills")) {
+    return formatSkills();
+  } else if (cleanMessage.includes("summary")) {
+    return getSummary();
+  } else if (cleanMessage.includes("projects by") || cleanMessage.includes("filter projects by")) {
+    const keyword = cleanMessage.split("by ")[1];
+    return formatProjects(keyword);
+  } else if (cleanMessage.includes("projects")) {
+    return formatProjects();
+  } else if (cleanMessage.includes("contact")) {
+    return formatContacts();
+  } else if (cleanMessage.includes("generate portfolio")) {
+    return generatePortfolioHTML();
+  } else {
+    return `I'm not sure how to handle that. Try asking about "skills", "projects", or "summary".`;
+  }
+}
+
+function getSummary() {
+  const data = getSheetData("Summary");
+  return data.length > 0 ? data[0][0] : "No summary found.";
+}
+
+function formatSkills() {
+  const data = getSheetData("Skills");
+  if (data.length === 0) return "No skills data found.";
+  let html = "<b>Here are our team's collective skills:</b><br><ul>";
+  data.forEach(row => {
+    html += `<li><strong>${row[0]}:</strong> ${row[1]}</li>`;
+  });
+  html += "</ul>";
+  return html;
+}
+
+function formatProjects(filterByTech = null) {
+  const data = getSheetData("Projects");
+  if (data.length === 0) return "No projects data found.";
+  const projectsToDisplay = filterByTech ?
+    data.filter(row => row[1].toLowerCase().includes(filterByTech.toLowerCase())) :
+    data;
+  if (projectsToDisplay.length === 0) {
+    return `Sorry, no projects found using the technology "${filterByTech}". Try "React" or "JavaScript".`;
+  }
+  let html = `<b>Here are the projects${filterByTech ? ` using ${filterByTech}` : ''}:</b><br><br>`;
+  projectsToDisplay.forEach(proj => {
+    html += `
+      <details>
+        <summary><strong>${proj[0]}</strong></summary>
+        <p>${proj[2]}</p>
+        <p><em>Technologies: ${proj[1]}</em></p>
+      </details>
+    `;
+  });
+  return html;
+}
+
+function formatContacts() {
+  const data = getSheetData("Contact");
+  if (data.length === 0) return "No contact information found.";
+  let html = "<b>You can connect with the team on LinkedIn:</b><br><ul>";
+  data.forEach(row => {
+    html += `<li><a href="${row[1]}" target="_blank">${row[0]}</a></li>`;
+  });
+  html += "</ul>";
+  return html;
+}
+
+
+
+function generatePortfolioHTML() {
+  const summary = getSummary();
+  const skillsData = getSheetData("Skills");
+  const projectsData = getSheetData("Projects");
+  const contactData = getSheetData("Contact");
+
+  // Skills HTML
+  let skillsHTML = "";
+  skillsData.forEach(row => {
+    skillsHTML += `<li>${row[0]}</li>`;
+  });
+
+  // Projects HTML
+  let projectsHTML = "";
+  projectsData.forEach(proj => {
+    projectsHTML += `
+      <div class="project">
+        <h3>${proj[0]}</h3>
+        <p>${proj[2]}</p>
+        <p><strong>Technologies:</strong> ${proj[1]}</p>
+      </div>
+    `;
+  });
+
+  // Contact HTML
+  let contactHTML = "";
+  contactData.forEach(row => {
+    contactHTML += `<p><a href="${row[1]}" target="_blank">${row[0]}</a></p>`;
+  });
+
+  // Final Portfolio HTML
+  const portfolioHTML = `
+<pre>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Portfolio&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; }
+    h1, h2 { color: #38bdf8; }
+    .section { margin-bottom: 40px; }
+    ul { padding-left: 20px; }
+    .project { background: #1e293b; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    a { color: #60a5fa; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+  &lt;h1&gt;My Portfolio&lt;/h1&gt;
+
+  &lt;div class="section"&gt;
+    &lt;h2&gt;About Me&lt;/h2&gt;
+    &lt;p&gt;${summary}&lt;/p&gt;
+  &lt;/div&gt;
+
+  &lt;div class="section"&gt;
+    &lt;h2&gt;Skills&lt;/h2&gt;
+    &lt;ul&gt;
+      ${skillsHTML}
+    &lt;/ul&gt;
+  &lt;/div&gt;
+
+  &lt;div class="section"&gt;
+    &lt;h2&gt;Projects&lt;/h2&gt;
+    ${projectsHTML}
+  &lt;/div&gt;
+
+  &lt;div class="section"&gt;
+    &lt;h2&gt;Contact&lt;/h2&gt;
+    ${contactHTML}
+  &lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+  `;
+
+  return portfolioHTML;
+}
