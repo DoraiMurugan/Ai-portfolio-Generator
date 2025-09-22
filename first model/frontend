@@ -1,1 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Portfolio Chat</title>
+  <style>
+    :root { --radius: 16px; --link: rgb(113, 128, 113); }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
+      background: #0b1020;
+      color: #e5e7eb;
+      margin: 0;
+      overflow-x: hidden;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .parallax {
+      position: fixed;
+      width: 100%;
+      height: 100vh;
+      top: 0; left: 0;
+      list-style-type: none;
+      overflow: hidden;
+      z-index: -2;
+    }
+    .parallax .layer {
+      position: absolute;
+      width: inherit;
+      height: inherit;
+      background-position: center 25%;
+      background-size: cover;
+      z-index: -1;
+      transition: transform 0.1s ease-out;
+      filter: blur(4px) brightness(0.8);
+    }
+    .parallax .layer:nth-of-type(1) { background-image: url('https://raw.githubusercontent.com/misalagp/imgs/53ece8c56d462838e143383adc1a3078c1960e4d/1.svg'); }
+    .parallax .layer:nth-of-type(2) { background-image: url('https://raw.githubusercontent.com/misalagp/imgs/53ece8c56d462838e143383adc1a3078c1960e4d/2.svg'); }
+    .parallax .layer:nth-of-type(3) { background-image: url('https://raw.githubusercontent.com/misalagp/imgs/53ece8c56d462838e143383adc1a3078c1960e4d/3.svg'); }
+    .parallax .layer:nth-of-type(4) { background-image: url('https://raw.githubusercontent.com/misalagp/imgs/53ece8c56d462838e143383adc1a3078c1960e4d/4.svg'); }
+    .parallax .layer:nth-of-type(5) { background-image: url('https://raw.githubusercontent.com/misalagp/imgs/53ece8c56d462838e143383adc1a3078c1960e4d/4.svg'); }
+    .parallax .layer:nth-of-type(6) { background-image: url('https://gist.githubusercontent.com/mondenoir/5395b6e7d9445c3a0fc82e6ece97268c/raw/bca5c0c6397e38d79b5af9e88f78f0aa7b515b94/img-1.svg'); }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.75rem;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: center;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5em;
+      line-height: 1.2;
+      text-shadow: 0 1px 0 #ffffff;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+      position: relative;
+      z-index: 5;
+    }
+    header {
+      text-align: center;
+      margin: 18px 0 8px;
+    }
+    .chat {
+      background: rgba(255, 255, 255, 0);
+      backdrop-filter: blur(6px);
+      border: 1px solid #1f2937;
+      border-radius: 24px;
+      padding: 12px;
+      min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .msgs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 8px 0;
+    }
+    .row { display: flex; margin: 10px 0; }
+    .row.user { justify-content: flex-end; }
+    .bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      line-height: 1.45;
+      box-shadow: 0 4px 14px rgba(0,0,0,.2);
+    }
+    .user .bubble {
+      background: #1f3028;
+      color: white;
+      border-bottom-right-radius: 6px;
+    }
+    .bot .bubble {
+      background: #4D6E5F;
+      border: 1px solid #1f2937;
+      border-bottom-left-radius: 6px;
+    }
+    .inputRow {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-top: 1px solid #1f2937;
+    }
+    input[type="text"] {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid #000;
+      background: #324a41;
+      color: #f4f2f7;
+      padding: 14px 16px;
+      outline: none;
+    }
+    .btn {
+      border: none;
+      height: 48px;
+      padding: 0 18px;
+      border-radius: 999px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      background: #1C1A1C;
+      cursor: pointer;
+      transition: all 450ms ease-in-out;
+      border: 1px solid #374151;
+      color: #e5e7eb;
+    }
+    .sparkle {
+      fill: #AAAAAA;
+      transition: all 800ms ease;
+    }
+    .text {
+      font-weight: 600;
+      color: #AAAAAA;
+      font-size: 0.95rem;
+    }
+    .btn:hover {
+      background: linear-gradient(0deg, #578f72, #27523c);
+      box-shadow: inset 0px 1px 0px 0px rgba(255, 255, 255, 0.4),
+                  inset 0px -4px 0px 0px rgba(0, 0, 0, 0.2),
+                  0px 0px 0px 4px rgba(255, 255, 255, 0.2),
+                  0px 0px 180px 0px #60ab8f;
+      transform: translateY(-2px);
+    }
+    .btn:hover .text { color: white; }
+    .btn:hover .sparkle { fill: white; transform: scale(1.2); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 2px 0;
+    }
+    .chip {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Fredoka One", cursive;
+      background-color: #325e46;
+      border: 1px solid #325e46;
+      color: #fff;
+      font-size: 14px;
+      padding: 10px 8px;
+      border-radius: 999px;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.35s;
+      box-sizing: border-box;
+      margin: 0.25rem;
+      cursor: pointer;
+    }
+    .chip:hover {
+      transform: translateY(-0.25em);
+      box-shadow: 0 0 0.5em 0em #1e3d2d;
+      border-color: #1e3d2d;
+      background-color: #1e3d2d;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid #1f2937;
+      border-top-color: #e5e7eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    a { color: #60a5fa; }
+    details { margin-top: 8px; }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #030712;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+    }
+    .content {
+      background-color: rgba(39,40,25,0.9);
+      backdrop-filter: blur(6px);
+      display: grid;
+      place-items: center;
+      gap: 3rem;
+      position: relative;
+      z-index: 5;
+      padding: 2rem;
+      border-radius: 16px;
+      margin: 2rem auto;
+      max-width: 900px;
+    }
+    .content .info {
+      width: min(80vw, 550px);
+      font: 0.85rem/1.8 futura, sans-serif;
+      color: rgba(255,255,255,0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2.5rem;
+    }
+    .content .info h1 {
+      font-size: 1.25rem;
+      color: rgb(204, 117, 107);
+    }
+    .content footer {
+      display: flex;
+      gap: 1rem;
+      padding-bottom: 1rem;
+    }
+    .content footer ion-icon {
+      cursor: pointer;
+      color: rgb(93, 106, 93);
+      font-size: 1.1rem;
+    }
+    .content footer ion-icon:hover {
+      color: rgb(121, 149, 121);
+    }
+  </style>
+</head>
+<body>
+<!-- Parallax background -->
+<ul class='parallax'>
+  <li class='layer'></li>
+  <li class='layer'></li>
+  <li class='layer'></li>
+  <li class='layer'></li>
+  <li class='layer'></li>
+  <li class='layer'></li>
+</ul>
 
+<div class="wrap">
+  <header>
+    <h1>Portfolio Generator • Chat</h1>
+    <p>Ask for “skills”, “projects”, “generate portfolio html”, or things like “projects by React”.</p>
+  </header>
+  <div class="chat">
+    <div id="msgs" class="msgs"></div>
+    <div id="suggestions" class="suggestions"></div>
+    <div class="inputRow">
+      <input id="input" type="text" placeholder="Message Here!…" autofocus />
+      <button id="send" class="btn">
+        <svg height="24" width="24" viewBox="0 0 24 24" class="sparkle" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,21.236,6.755,14.745.264,11.5,6.755,8.255,10,1.764l3.245,6.491L19.736,11.5l-6.491,3.245ZM18,21l1.5,3L21,21l3-1.5L21,18l-1.5-3L18,18l-3,1.5ZM19.333,4.667,20.5,7l1.167-2.333L24,3.5,21.667,2.333,20.5,0,19.333,2.333,17,3.5Z"></path>
+        </svg>
+        <span class="text">Send</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<article class='content'>
+  <section class='info'>
+    <h1>About us</h1>
+    <p>
+      Portfolio Generator is an AI-powered tool designed to help users create professional portfolios quickly and easily, without any coding. Started as a hackathon project by a group of five college friends, the idea was born from a shared passion for technology, design, and solving real-world problems. Our mission is to make portfolio creation simple, smart, and accessible for everyone. As we continue developing the platform, we're also exploring its potential as a startup to help more people showcase their work with ease. Feel free to reach out to us for questions, feedback, or collaboration.
+      <br><br>
+      Team Members:<br>
+      S. Dorai Murugan – Full Stack Developer<br>
+      S. Mohamed Fizal – Full Stack Developer<br>
+      S. Mohamed Sameer – Full Stack Developer<br>
+      M. Yuvaraj – Frameworks, R&amp;D, Design<br>
+      K. R. Abishek – Frameworks, R&amp;D, Design
+    </p>
+    <center><br><b>"Great portfolios don’t just show work — they tell a story. We're building the tool that helps you tell yours."</b></center>
+  </section>
+  <footer>
+    <a href="https://www.linkedin.com/in/dorai-murugan-a195282ba" target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a>
+    <a href="https://www.linkedin.com/in/mohamed-fizal-s" target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a>
+    <a href="https://www.linkedin.com/in/mohamed-sameer-s-sameer-3606742ba" target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a>
+    <a href="https://www.linkedin.com/in/yuvaraj-m-3406712ba/"  target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a>
+    <a href="https://www.linkedin.com/in/abishek-king-54652a2ba" target="_blank"><ion-icon name="logo-linkedin"></ion-icon></a>
+  </footer>
+</article>
+
+<script defer type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script defer nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxs8p99BSZuC4e4Yh1ys-5BXXzfUCgnrEa2zn-ETxXwi3jK81s2i3wPLg21GNKiPx31OQ/exec"; // <-- PUT YOUR SCRIPT URL HERE!
+
+const msgs = document.getElementById("msgs");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("send");
+const suggestions = document.getElementById("suggestions");
+
+function addMessage(role, html) {
+  const row = document.createElement("div");
+  row.className = "row " + role;
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = html;
+  row.appendChild(bubble);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function setSuggestions(items = []) {
+  suggestions.innerHTML = "";
+  items.forEach(text => {
+    const chip = document.createElement("button");
+    chip.className = "chip";
+    chip.textContent = text;
+    chip.onclick = () => {
+      input.value = text;
+      input.focus();
+    };
+    suggestions.appendChild(chip);
+  });
+}
+
+function escapeHTML(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+async function sendMessage(message) {
+  addMessage("user", escapeHTML(message));
+  input.value = "";
+  input.disabled = true; sendBtn.disabled = true;
+
+  const typingRow = document.createElement("div");
+  typingRow.className = "row bot";
+  const typingBubble = document.createElement("div");
+  typingBubble.className = "bubble";
+  typingBubble.innerHTML = `<div style="display:flex;align-items:center;gap:8px"><div class="spinner"></div>Thinking…</div>`;
+  typingRow.appendChild(typingBubble);
+  msgs.appendChild(typingRow);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+    msgs.removeChild(typingRow);
+    addMessage("bot", data.reply || "No reply.");
+    setSuggestions(data.suggestions || []);
+  } catch (err) {
+    msgs.removeChild(typingRow);
+    addMessage("bot", "Failed to reach backend. Check your Apps Script deployment URL & access.");
+  } finally {
+    input.disabled = false; sendBtn.disabled = false; input.focus();
+  }
+}
+
+sendBtn.addEventListener("click", () => {
+  const v = input.value.trim();
+  if (v) sendMessage(v);
+});
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const v = input.value.trim();
+    if (v) sendMessage(v);
+  }
+});
+
+// Initial greeting in chat
+addMessage("bot", "Hi! I can pull your portfolio data. Try <em>List projects</em> or <em>Generate portfolio HTML</em>.");
+setSuggestions(["Show profile summary", "List projects", "Share skills", "Generate portfolio HTML", "Filter projects by React", "Contact details"]);
+
+// Parallax effect
+const layers = document.querySelectorAll('.layer');
+function parallax() {
+  const y = window.scrollY;
+  for (let i = 1; i < layers.length; i++) {
+    layers[layers.length - i].style.transform = `translateY(${(i * 0.1) * y}px)`;
+  }
+}
+window.addEventListener('scroll', parallax, false);
+
+
+
+  async function sendMessage(message) {
+    addMessage("user", message);
+    google.script.run.withSuccessHandler(function(reply) {
+      addMessage("bot", reply);
+    }).getBotResponse(message);
+  }
+  // Add UI logic to call sendMessage on user input.
+
+
+</script>
+</body>
+</html>
